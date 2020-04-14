@@ -1,0 +1,117 @@
+from math import sin, cos
+import matplotlib.pyplot as plt
+import numpy as np
+import time
+
+omega=1
+R=0.5
+S=2
+T=S*2
+G=6.674e-11
+M=1.9884e+30
+GM=(R**3)*(omega**2)
+
+def runkut(n, x, y, h):
+    "Advances the solution of diff eqn defined by derivs from x to x+h"
+    print("h" + str(h))
+    y0=y[:]
+    k1=derivs(n,x,y)
+
+    for i in range(1,n+1):
+
+        y[i]=y0[i]+0.5*h * k1[i]
+    k2=derivs(n, x +0.5*h, y)
+
+    for i in range(1,n+1):
+        y[i]=y0[i]+h*(0.2071067811* k1[i ]+0.2928932188*k2[i])
+    k3=derivs(n, x +0.5*h, y)
+    for i in range(1,n+1):
+        y[i]=y0[i] - h*(0.7071067811* k2[i] - 1.7071067811*k3[i])
+    k4=derivs(n, x+h, y)
+    for i in range(1,n+1):
+        a=k1[i ]+0.5857864376*k2[i ]+3.4142135623*k3[i]+k4[i]
+        y[i]=y0[i ]+0.16666666667*h * a 
+
+    x+=h
+    return (x,y)
+# #################
+#dy[2] = acceleration
+#dy[1] = velocity
+def derivs(n, x, y):
+    "The function DERIVS calculates y’ from x and y"
+    X1=R*np.cos(omega*x)
+    print("X1 " + str(X1))
+    X2=-R*np.cos(omega*x)
+    Y1=R*np.sin(omega*x)
+    print("Y1 " + str(Y1))
+    Y2=-R*np.sin(omega*x)
+    print("X2 " +str(X2))
+    print("Y2 " +str(Y2))    
+    r1=((y[1]-X1)**2+(y[3]-Y1)**2)**0.5
+    r2=((y[1]-X2)**2+(y[3]-Y2)**2)**0.5
+    print("r1 " +str(r1))
+    print("r2 " +str(r2))
+    x_acc=-GM*((1/r1**2)*((y[1]-X1)/r1)+(1/r2**2)*((y[1]-X2)/r2))
+    y_acc=-GM*((1/r1**2)*((y[3]-Y1)/r1)+(1/r2**2)*((y[3]-Y2)/r2))
+    print("x_acc " +str(x_acc))
+    print("y_acc " +str(y_acc))    
+    dy =[0 for i in range(0,n+1)]
+    dy[1]=y[2]
+    dy[2]=x_acc
+    dy[3]=y[4]
+    dy[4]=y_acc
+    return dy 
+# #################
+
+
+
+
+
+
+
+N=500
+
+
+x=0.0; y=[0, R*S, 0,0,-0.6]
+ # Set Boundary Conditions   initial accelerration , initial velocity 
+# Calculate and print the solution for x= 0 to 1 using N steps
+
+x_pos=[]
+y_pos=[]
+time1=[]
+"""
+t=np.arange(0,20,0.1)
+
+X1=R*np.cos(omega*t)
+Y1=R*np.sin(omega*t)
+fig, ax = plt.subplots()
+ax.scatter(X1,Y1)
+plt.show()
+"""
+
+
+fig1, ax1 = plt.subplots()
+def animate(x,y):
+    time1.append(x)
+    x_pos.append(y[1])
+    y_pos.append(y[3])
+    X1=R*np.cos(omega*x)
+    Y1=R*np.sin(omega*x)
+    X2=-R*np.cos(omega*x)
+    Y2=-R*np.sin(omega*x)
+    ax1.clear()
+    ax1.scatter(X1,Y1,s=15)
+    ax1.scatter(X2,Y2,s=15)
+    plt.ylim(-T*R,T*R)
+    plt.xlim(-T*R,T*R)
+    ax1.scatter(x_pos,y_pos,s=8)
+    plt.pause(0.03)
+
+for j in range(0,N):
+    print(x)
+    print(y)
+    x,y = runkut(4, x, y, (0.1))
+    animate(x,y)
+
+
+
