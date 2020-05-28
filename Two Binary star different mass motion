@@ -1,0 +1,23 @@
+import numpy as np
+import matplotlib.pyplot as plt
+R1=0.75
+R2=0.25
+fig1, ax1 = plt.subplots()
+def animate(x):
+    R=0.5
+    omega=1
+    X1=R1*np.cos(omega*x)
+    Y1=R1*np.sin(omega*x)
+    X2=-R2*np.cos(omega*x)
+    Y2=-R2*np.sin(omega*x)
+    plt.ylim(-3*R,3*R)
+    plt.xlim(-3*R,3*R)
+
+    ax1.scatter(X1,Y1,s=5,c="red")
+    ax1.scatter(X2,Y2,s=15,c="blue")
+    plt.pause(0.3)
+time1=0
+for i in range(100):
+    animate(time1)
+    time1=time1+0.1
+plt.show()
