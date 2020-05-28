@@ -5,15 +5,25 @@ import time
 
 omega=1
 R=0.5
-S=2
-T=S*2
+S=4
+T=S*6
 G=6.674e-11
 M=1.9884e+30
 GM=(R**3)*(omega**2)
+interval=0.8
+
+N=400
+initial_x=S
+initial_x_velocity=-0.15
+
+initial_y=0
+initial_y_velocity=--0.25
+
+
 
 def runkut(n, x, y, h):
     "Advances the solution of diff eqn defined by derivs from x to x+h"
-    print("h" + str(h))
+    #print("h" + str(h))
     y0=y[:]
     k1=derivs(n,x,y)
 
@@ -40,21 +50,21 @@ def runkut(n, x, y, h):
 def derivs(n, x, y):
     "The function DERIVS calculates y’ from x and y"
     X1=R*np.cos(omega*x)
-    print("X1 " + str(X1))
+    #print("X1 " + str(X1))
     X2=-R*np.cos(omega*x)
     Y1=R*np.sin(omega*x)
-    print("Y1 " + str(Y1))
+    #print("Y1 " + str(Y1))
     Y2=-R*np.sin(omega*x)
-    print("X2 " +str(X2))
-    print("Y2 " +str(Y2))    
+    #print("X2 " +str(X2))
+    #print("Y2 " +str(Y2))    
     r1=((y[1]-X1)**2+(y[3]-Y1)**2)**0.5
     r2=((y[1]-X2)**2+(y[3]-Y2)**2)**0.5
-    print("r1 " +str(r1))
-    print("r2 " +str(r2))
+    #print("r1 " +str(r1))
+    #print("r2 " +str(r2))
     x_acc=-GM*((1/r1**2)*((y[1]-X1)/r1)+(1/r2**2)*((y[1]-X2)/r2))
     y_acc=-GM*((1/r1**2)*((y[3]-Y1)/r1)+(1/r2**2)*((y[3]-Y2)/r2))
-    print("x_acc " +str(x_acc))
-    print("y_acc " +str(y_acc))    
+    #print("x_acc " +str(x_acc))
+    #print("y_acc " +str(y_acc))    
     dy =[0 for i in range(0,n+1)]
     dy[1]=y[2]
     dy[2]=x_acc
@@ -69,16 +79,18 @@ def derivs(n, x, y):
 
 
 
-N=500
 
 
-x=0.0; y=[0, R*S, 0,0,-0.6]
+
+x=0.0; y=[0,initial_x, initial_x_velocity,initial_y,initial_y_velocity]  #[empty,x-position,x-vel,y-position,y-vel]
  # Set Boundary Conditions   initial accelerration , initial velocity 
 # Calculate and print the solution for x= 0 to 1 using N steps
 
 x_pos=[]
 y_pos=[]
-time1=[]
+x_pos1=[]
+y_pos1=[]
+
 """
 t=np.arange(0,20,0.1)
 
@@ -91,8 +103,7 @@ plt.show()
 
 
 fig1, ax1 = plt.subplots()
-def animate(x,y):
-    time1.append(x)
+def animate(x,y,time1):
     x_pos.append(y[1])
     y_pos.append(y[3])
     X1=R*np.cos(omega*x)
@@ -100,18 +111,103 @@ def animate(x,y):
     X2=-R*np.cos(omega*x)
     Y2=-R*np.sin(omega*x)
     ax1.clear()
-    ax1.scatter(X1,Y1,s=15)
-    ax1.scatter(X2,Y2,s=15)
+    ax1.scatter(X1,Y1,s=15,c="blue")
+    ax1.scatter(X2,Y2,s=15,c="blue")
     plt.ylim(-T*R,T*R)
     plt.xlim(-T*R,T*R)
-    ax1.scatter(x_pos,y_pos,s=8)
+    plt.title('Time:' + str(time1))
+    ax1.scatter(x_pos,y_pos,s=1,c="red")
     plt.pause(0.03)
-
+time1=0
 for j in range(0,N):
-    print(x)
-    print(y)
-    x,y = runkut(4, x, y, (0.1))
-    animate(x,y)
+    #print(x)
+    #print(y)
+    x,y = runkut(4, x, y, (interval))
+    x_pos1.append(y[1])
+    y_pos1.append(y[3])
+    animate(x,y,time1)
+    time1=(time1+interval)
+    time1=round(time1, 4);
+
+period=[]
 
 
+def calculate_acceleration(t,x,y,omega,R):
+    X1=R*np.cos(omega*t)
+    #print("X1 " + str(X1))
+    X2=-R*np.cos(omega*t)
+    Y1=R*np.sin(omega*t)
+    #print("Y1 " + str(Y1))
+    Y2=-R*np.sin(omega*t)
+    #print("X2 " +str(X2))
+    #print("Y2 " +str(Y2))    
+    r1=((x-X1)**2+(y-Y1)**2)**0.5
+    r2=((x-X2)**2+(y-Y2)**2)**0.5
+    #print("r1 " +str(r1))
+    #print("r2 " +str(r2))
+    x_acc=-GM*((1/r1**2)*((x-X1)/r1)+(1/r2**2)*((x-X2)/r2))
+    y_acc=-GM*((1/r1**2)*((y-Y1)/r1)+(1/r2**2)*((y-Y2)/r2))
+    return x_acc,y_acc
+
+t=0
+acceleration_x=[]
+acceleration_y=[]
+for i in x_pos1:
+    for j in y_pos1:
+        x_acc1,y_acc1=calculate_acceleration(t,i,j,omega,R)
+        acceleration_x.append(x_acc1)
+        acceleration_y.append(y_acc1)
+        t=t+interval
+acceleration_x=np.asarray(acceleration_x)
+acceleration_y=np.asarray(acceleration_y)
+general_acceleration=(acceleration_x**2+acceleration_y**2)**0.5          
+mean=np.mean(general_acceleration)
+max_val=np.max(general_acceleration)
+min_val=np.min(general_acceleration)  
+
+x_pos1=np.asarray(x_pos1)
+y_pos1=np.asarray(y_pos1)
+time1=np.arange(0,N*interval,interval)
+axis1=x_pos1*np.cos(omega*time1)+y_pos1*np.sin(omega*time1)
+axis2=-x_pos1*np.sin(omega*time1)+y_pos1*np.cos(omega*time1)
+
+
+fig1, ax1 = plt.subplots()
+
+ax1.scatter(axis1,axis2,s=3,c="red")
+plt.show()
+
+
+
+
+
+"""          
+for k in range(len(x_pos1)):            
+    if x_pos1[k]==initial_x and y_pos1[k]==initial_y:
+        period.append((j))
+"""
+
+
+
+
+
+
+
+mean_radius=19.988548043472935
+mean_feild=1/20**2
+        
+print(period)
+
+
+x_pos1=np.asarray(x_pos1)
+y_pos1=np.asarray(y_pos1)
+distance=(y_pos1**2+x_pos1**2)**0.5
+print("mean radius " +str(np.mean(distance)))
+print("max radius " +str(np.max(distance)))
+print("min radius " +str(np.min(distance)))
+
+
+print("mean field " + str((1/np.mean(distance)**2)/mean_feild))
+print("max field " + str((1/np.max(distance)**2)/mean_feild))
+print("min field " + str((1/np.min(distance)**2)/mean_feild))
 
